@@ -105,6 +105,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 		
 	//** Fixed size command of 3 bytes *[]#, Initialise
+	HAL_UART_Receive_DMA(&huart1, (uint8_t *)rxBuf, 3);
 	HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxBuf, 3); //
   /* USER CODE END 2 */
 
@@ -290,22 +291,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   /* NOTE: This function should not be modified, when the callback is needed,
            the HAL_UART_RxCpltCallback could be implemented in the user file
    */
-	
-	if(rxBuf[0] == '*' && rxBuf[2] == '#')
+	if(huart->Instance == USART2)
+	{
+		if(rxBuf[0] == '*' && rxBuf[2] == '#')
 			{
 				//Start UART DMA receive based on User specified length (Caviat: always ensure user requested)
 				if(rxBuf[1] == 0x01)
 				{
 					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-					HAL_UART_Transmit_DMA(&huart2,txBuf,2);
+					HAL_UART_Transmit_DMA(huart,txBuf,2);
 				}
 				else if(rxBuf[1] == 0x02)
 				{
 					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);
-					HAL_UART_Transmit_DMA(&huart2,txBuf,2);
+					HAL_UART_Transmit_DMA(huart,txBuf,2);
 				}
 			}
-	HAL_UART_Receive_DMA(&huart2, (uint8_t *)rxBuf, 3);
+	HAL_UART_Receive_DMA(huart, (uint8_t *)rxBuf, 3);
+	}
+	
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
